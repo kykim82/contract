@@ -194,6 +194,11 @@ function setPendingSignatureMessage(role) {
 }
 
 function setActiveRole() {
+  const roleLabel = document.querySelector("[data-role-label]");
+  if (roleLabel) {
+    roleLabel.textContent = activeRole === "client" ? "(발주자용)" : activeRole === "developer" ? "(개발자용)" : "";
+  }
+
   document.querySelectorAll("[data-signature-card]").forEach((card) => {
     const role = card.dataset.signatureCard;
     const isActive = hasRoleLock() && role === activeRole;
