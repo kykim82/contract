@@ -1,11 +1,14 @@
-function json(data, status = 200) {
+﻿function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8" },
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    },
   });
 }
 
-const CONTRACT_ID = "yeosu19-2026-06-22-v2";
+const CONTRACT_ID = "yeosu19-2026-06-22-v4";
 
 export async function onRequestGet({ env }) {
   if (!env.DB) {
