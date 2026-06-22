@@ -1,7 +1,2 @@
 name = "contract"
 pages_build_output_dir = "public"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "contract-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
