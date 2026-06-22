@@ -24,6 +24,8 @@ export async function onRequestPost({ request, env }) {
   await env.DB.prepare(`
     DELETE FROM contract_signatures
     WHERE contract_id = ?
+       OR contract_id LIKE 'yeosu19-2026-06-22-%'
+       OR contract_id = 'yeosu19-2026-06-19'
   `).bind(CONTRACT_ID).run();
 
   return json({ ok: true });
