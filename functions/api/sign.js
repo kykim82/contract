@@ -1,4 +1,4 @@
-function json(data, status = 200) {
+﻿function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: { "content-type": "application/json; charset=utf-8" },
@@ -9,7 +9,7 @@ function allowedRole(role) {
   return role === "client" || role === "developer";
 }
 
-const CONTRACT_ID = "yeosu19-2026-06-22-v2";
+const CONTRACT_ID = "yeosu19-2026-06-22-v4";
 
 export async function onRequestPost({ request, env }) {
   if (!env.DB) {
@@ -59,4 +59,27 @@ export async function onRequestPost({ request, env }) {
       userAgent,
     },
   });
+}
+
+export async function onRequestDelete({ request, env }) {
+  if (!env.DB) {
+    return json({ ok: false, message: "D1 binding DB is not configured" }, 500);
+  }
+
+  const body = await request.json().catch(() => ({}));
+  if (env.SIGNING_TOKEN && body.token !== env.SIGNING_TOKEN) {
+    return json({ ok: false, message: "Invalid signing token" }, 401);
+  }
+
+  const role = String(body.role || "");
+  if (!allowedRole(role)) {
+    return json({ ok: false, message: "Invalid role" }, 400);
+  }
+
+  await env.DB.prepare(`
+    DELETE FROM contract_signatures
+    WHERE contract_id = ? AND role = ?
+  `).bind(CONTRACT_ID, role).run();
+
+  return json({ ok: true, role });
 }
