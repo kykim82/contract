@@ -1,0 +1,270 @@
+:root {
+  color-scheme: light;
+  --ink: #1f1c18;
+  --muted: #73685c;
+  --line: #ded5ca;
+  --paper: #fffdf9;
+  --bg: #f4f0e9;
+  --accent: #7a5233;
+  --accent-dark: #543722;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+  line-height: 1.75;
+}
+
+button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--accent-dark);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #f1e5d8;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px max(18px, calc((100vw - 1040px) / 2));
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 253, 249, 0.94);
+  backdrop-filter: blur(10px);
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 34px);
+}
+
+.topbar p {
+  margin: 3px 0 0;
+  color: var(--muted);
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.topbar__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.page {
+  width: min(1040px, calc(100% - 32px));
+  margin: 28px auto 80px;
+}
+
+.notice {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid #ead8c3;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #5d402a;
+}
+
+.contract {
+  padding: clamp(24px, 5vw, 58px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: 0 24px 70px rgba(45, 34, 23, 0.08);
+}
+
+.contract h2 {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--ink);
+  font-size: clamp(28px, 4vw, 42px);
+  text-align: center;
+}
+
+.subtitle {
+  margin: 14px 0 34px;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 700;
+}
+
+.contract h3 {
+  margin: 34px 0 10px;
+  color: #111;
+  font-size: 20px;
+}
+
+.contract p,
+.contract li {
+  font-size: 16px;
+}
+
+.contract ol,
+.contract ul {
+  padding-left: 24px;
+}
+
+.contract-date {
+  margin-top: 44px;
+  text-align: center;
+  font-weight: 900;
+}
+
+.signature-area {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 42px;
+}
+
+.signature-card {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffaf3;
+}
+
+.signature-card.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(122, 82, 51, 0.14);
+}
+
+.signature-card h3 {
+  margin: 0;
+}
+
+.signature-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.signature-card dl div {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+}
+
+.signature-card dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.signature-card dd {
+  margin: 0;
+}
+
+.signature-box {
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+  border: 1px dashed #b8a896;
+  border-radius: 10px;
+  background: #fff;
+  touch-action: none;
+}
+
+.signature-box::before {
+  content: "여기에 직접 서명하세요";
+  position: absolute;
+  left: 18px;
+  top: 12px;
+  color: #c1b6aa;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.signature-box canvas,
+.signature-box img {
+  display: block;
+  width: 100%;
+  height: 180px;
+}
+
+.signature-box img {
+  object-fit: contain;
+}
+
+.signed-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.signature-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    position: static;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topbar__actions {
+    justify-content: flex-start;
+  }
+
+  .signature-area {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .topbar,
+  .notice,
+  .signature-actions {
+    display: none !important;
+  }
+
+  .page {
+    width: 100%;
+    margin: 0;
+  }
+
+  .contract {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .signature-card {
+    break-inside: avoid;
+  }
+}
