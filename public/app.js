@@ -92,16 +92,25 @@ function setSignaturePreview(role, hasSignature) {
   if (preview) preview.hidden = !hasSignature;
 }
 
-function clearPad(role) {
+async function clearPad(role) {
   if (!canEditRole(role)) {
     alert(`${roles[role].label} 서명 링크에서만 수정할 수 있습니다.`);
     return;
   }
 
-  clearCanvas(role);
-  setSignaturePreview(role, false);
-  const meta = document.querySelector(`[data-signed-meta="${role}"]`);
-  if (meta) meta.textContent = "서명을 다시 입력해주세요.";
+  const response = await fetch("/api/sign", {
+    method: "DELETE",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ role, token: signingToken }),
+  }).catch(() => null);
+
+  if (!response?.ok) {
+    alert("서명 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    return;
+  }
+
+  await setSignature(role, null);
+  alert("서명이 삭제되었습니다.");
 }
 
 function drawImageToCanvas(context, canvas, image) {
@@ -125,18 +134,22 @@ function drawImageToCanvas(context, canvas, image) {
 
 function drawSignature(role, signatureData) {
   const pad = pads.get(role);
-  if (!pad) return;
+  if (!pad) return Promise.resolve();
 
   clearCanvas(role);
-  if (!signatureData) return;
+  if (!signatureData) return Promise.resolve();
 
-  const image = new Image();
-  image.onload = () => {
-    drawImageToCanvas(pad.context, pad.canvas, image);
-    pad.dirty = false;
-    setSignaturePreview(role, true);
-  };
-  image.src = signatureData;
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      drawImageToCanvas(pad.context, pad.canvas, image);
+      pad.dirty = false;
+      setSignaturePreview(role, true);
+      resolve();
+    };
+    image.onerror = resolve;
+    image.src = signatureData;
+  });
 }
 
 function formatContractDate(dateValue) {
@@ -167,13 +180,13 @@ function updateContractDate() {
   dateElement.textContent = formatContractDate(completedAt);
 }
 
-function setSignature(role, signature) {
+async function setSignature(role, signature) {
   const meta = document.querySelector(`[data-signed-meta="${role}"]`);
   if (!meta) return;
 
   if (!signature?.signatureData) {
     signatureState[role] = null;
-    drawSignature(role, "");
+    await drawSignature(role, "");
     setSignaturePreview(role, false);
     meta.textContent = "아직 서명되지 않았습니다.";
     updateContractDate();
@@ -181,7 +194,7 @@ function setSignature(role, signature) {
   }
 
   signatureState[role] = signature;
-  drawSignature(role, signature.signatureData);
+  await drawSignature(role, signature.signatureData);
   const signedAt = signature.signedAt ? new Date(signature.signedAt).toLocaleString("ko-KR") : "";
   meta.textContent = `${signature.signerName || roles[role].name} 서명 완료${signedAt ? ` · ${signedAt}` : ""}`;
   updateContractDate();
@@ -212,7 +225,7 @@ function setActiveRole() {
       canvas.tabIndex = isLocked ? -1 : 0;
     }
 
-    card.querySelectorAll("[data-open-signature], [data-clear], [data-save], [data-check-contract]").forEach((button) => {
+    card.querySelectorAll("[data-open-signature], [data-clear], [data-check-contract]").forEach((button) => {
       button.hidden = isLocked;
       button.disabled = isLocked;
     });
@@ -252,19 +265,21 @@ function clearModalPad() {
   modal.dirty = true;
 }
 
-function confirmModalSignature() {
+async function confirmModalSignature() {
   if (!modal.role) return;
   const pad = pads.get(modal.role);
   if (!pad) return;
 
+  const role = modal.role;
   clearCanvasContext(pad.context, pad.canvas);
   pad.context.drawImage(modal.canvas, 0, 0, pad.canvas.width, pad.canvas.height);
   pad.dirty = true;
-  setSignaturePreview(modal.role, true);
+  setSignaturePreview(role, true);
 
-  const meta = document.querySelector(`[data-signed-meta="${modal.role}"]`);
-  if (meta) meta.textContent = "서명 입력 완료. 저장 버튼을 눌러주세요.";
+  const meta = document.querySelector(`[data-signed-meta="${role}"]`);
+  if (meta) meta.textContent = "서명을 저장하고 있습니다.";
   closeSignatureModal();
+  await saveSignature(role);
 }
 
 function setupModalPad() {
@@ -357,9 +372,7 @@ function hasAllSignatures(signatures) {
 async function printContract() {
   const signatures = await fetchServerSignatures();
 
-  Object.keys(roles).forEach((role) => {
-    setSignature(role, signatures[role]);
-  });
+  await Promise.all(Object.keys(roles).map((role) => setSignature(role, signatures[role])));
   setActiveRole();
 
   if (!hasAllSignatures(signatures)) {
@@ -367,33 +380,8 @@ async function printContract() {
     return;
   }
 
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   window.print();
-}
-
-async function resetSignatures() {
-  if (activeRole !== "developer") {
-    alert("서명 초기화는 개발자 링크에서만 가능합니다.");
-    return;
-  }
-
-  if (!confirm("발주자와 개발자 서명을 모두 초기화할까요? 이 작업은 되돌릴 수 없습니다.")) {
-    return;
-  }
-
-  const response = await fetch("/api/reset", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ role: activeRole, token: signingToken }),
-  }).catch(() => null);
-
-  if (!response?.ok) {
-    alert("서명 초기화에 실패했습니다. 잠시 후 다시 시도해주세요.");
-    return;
-  }
-
-  Object.keys(roles).forEach((role) => setSignature(role, null));
-  setActiveRole();
-  alert("서명이 초기화되었습니다.");
 }
 
 async function saveSignature(role) {
@@ -428,16 +416,13 @@ async function saveSignature(role) {
   }
 
   const data = await response.json();
-  setSignature(role, data.signature);
+  await setSignature(role, data.signature);
   alert("서명이 저장되었습니다.");
 }
 
 document.querySelectorAll("[data-pad]").forEach((canvas) => setupPreviewPad(canvas.dataset.pad));
 document.querySelectorAll("[data-clear]").forEach((button) => {
   button.addEventListener("click", () => clearPad(button.dataset.clear));
-});
-document.querySelectorAll("[data-save]").forEach((button) => {
-  button.addEventListener("click", () => saveSignature(button.dataset.save));
 });
 document.querySelectorAll("[data-check-contract]").forEach((button) => {
   button.addEventListener("click", checkContract);
@@ -455,11 +440,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modal.root.hidden) closeSignatureModal();
 });
 document.getElementById("printButton").addEventListener("click", printContract);
-const resetButton = document.getElementById("resetButton");
-if (resetButton) {
-  resetButton.hidden = activeRole !== "developer";
-  resetButton.addEventListener("click", resetSignatures);
-}
 
 setupModalPad();
 setActiveRole();
