@@ -40,6 +40,10 @@ function canEditRole(role) {
   return !hasRoleLock() || activeRole === role;
 }
 
+function getOtherRole(role) {
+  return role === "client" ? "developer" : "client";
+}
+
 function getPoint(event, canvas) {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -184,6 +188,11 @@ function setSignature(role, signature) {
   updateContractDate();
 }
 
+function setPendingSignatureMessage(role) {
+  const meta = document.querySelector(`[data-signed-meta="${role}"]`);
+  if (meta) meta.textContent = "계약서 확인 버튼으로 상대방 서명을 확인하세요.";
+}
+
 function setActiveRole() {
   document.querySelectorAll("[data-signature-card]").forEach((card) => {
     const role = card.dataset.signatureCard;
@@ -192,9 +201,6 @@ function setActiveRole() {
 
     card.classList.toggle("is-active", isActive);
     card.classList.toggle("is-locked", isLocked);
-    card.querySelectorAll("button").forEach((button) => {
-      button.disabled = isLocked;
-    });
 
     const canvas = card.querySelector("canvas");
     if (canvas) {
@@ -202,9 +208,12 @@ function setActiveRole() {
       canvas.tabIndex = isLocked ? -1 : 0;
     }
 
-    card.querySelectorAll("[data-open-signature]").forEach((button) => {
+    card.querySelectorAll("[data-open-signature], [data-clear], [data-save]").forEach((button) => {
+      button.hidden = isLocked;
       button.disabled = isLocked;
     });
+
+    if (isLocked) setPendingSignatureMessage(role);
   });
 }
 
@@ -291,12 +300,45 @@ async function loadSignatures() {
   const response = await fetch("/api/signatures").catch(() => null);
   if (!response?.ok) {
     const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-    Object.keys(roles).forEach((role) => setSignature(role, saved[role]));
+    Object.keys(roles).forEach((role) => {
+      if (!hasRoleLock() || role === activeRole) setSignature(role, saved[role]);
+    });
     return;
   }
 
   const data = await response.json();
-  Object.keys(roles).forEach((role) => setSignature(role, data.signatures?.[role]));
+  Object.keys(roles).forEach((role) => {
+    if (!hasRoleLock() || role === activeRole) setSignature(role, data.signatures?.[role]);
+  });
+}
+
+async function checkContract() {
+  if (!hasRoleLock()) {
+    await loadSignatures();
+    alert("계약서 서명 상태를 새로 확인했습니다.");
+    return;
+  }
+
+  const otherRole = getOtherRole(activeRole);
+  const response = await fetch("/api/signatures").catch(() => null);
+  let signatures = {};
+
+  if (response?.ok) {
+    const data = await response.json();
+    signatures = data.signatures || {};
+  } else {
+    signatures = JSON.parse(localStorage.getItem(storageKey) || "{}");
+  }
+
+  setSignature(activeRole, signatures[activeRole] || signatureState[activeRole]);
+
+  if (!signatures[otherRole]?.signatureData) {
+    alert(`${roles[otherRole].label}은 아직 서명 전입니다.`);
+    return;
+  }
+
+  setSignature(otherRole, signatures[otherRole]);
+  alert(`${roles[otherRole].label} 서명이 확인되었습니다.`);
 }
 
 async function saveSignature(role) {
@@ -364,6 +406,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modal.root.hidden) closeSignatureModal();
 });
 document.getElementById("printButton").addEventListener("click", () => window.print());
+document.getElementById("checkButton").addEventListener("click", checkContract);
 
 setupModalPad();
 setActiveRole();
