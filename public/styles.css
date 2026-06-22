@@ -17,6 +17,15 @@
   display: none !important;
 }
 
+a[x-apple-data-detectors],
+a[href^="tel"],
+a[href^="sms"] {
+  color: inherit !important;
+  cursor: default !important;
+  text-decoration: none !important;
+  pointer-events: none;
+}
+
 body {
   margin: 0;
   background: var(--bg);
