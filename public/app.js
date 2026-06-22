@@ -349,6 +349,9 @@ async function checkContract() {
   await setSignature(activeRole, signatures[activeRole] || signatureState[activeRole]);
 
   if (!signatures[otherRole]?.signatureData) {
+    await setSignature(otherRole, null);
+    setPendingSignatureMessage(otherRole);
+    setActiveRole();
     alert(`${getRoleTopic(otherRole)} 아직 서명 전입니다.`);
     return;
   }
