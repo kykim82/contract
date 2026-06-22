@@ -43,6 +43,10 @@ function getOtherRole(role) {
   return role === "client" ? "developer" : "client";
 }
 
+function getRoleTopic(role) {
+  return `${roles[role].label}는`;
+}
+
 function getPoint(event, canvas) {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -337,24 +341,18 @@ async function checkContract() {
     return;
   }
 
+  const signatures = await fetchServerSignatures();
   const otherRole = getOtherRole(activeRole);
-  const response = await fetch(`/api/signatures?t=${Date.now()}`).catch(() => null);
-  let signatures = {};
 
-  if (response?.ok) {
-    const data = await response.json();
-    signatures = data.signatures || {};
-  }
-
-  setSignature(activeRole, signatures[activeRole] || signatureState[activeRole]);
+  await setSignature(activeRole, signatures[activeRole] || signatureState[activeRole]);
 
   if (!signatures[otherRole]?.signatureData) {
-    alert(`${roles[otherRole].label}은 아직 서명 전입니다.`);
+    alert(`${getRoleTopic(otherRole)} 아직 서명 전입니다.`);
     return;
   }
 
-  setSignature(otherRole, signatures[otherRole]);
-  alert(`${roles[otherRole].label} 서명이 확인되었습니다.`);
+  await setSignature(otherRole, signatures[otherRole]);
+  alert(`${getRoleTopic(otherRole)} 서명했습니다.`);
 }
 
 async function fetchServerSignatures() {
