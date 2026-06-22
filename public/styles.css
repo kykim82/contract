@@ -503,7 +503,11 @@ body.signature-modal-open {
     break-inside: avoid;
     page-break-inside: avoid;
     outline: none !important;
-    opacity: 1;
+    opacity: 1 !important;
+  }
+
+  .signature-card.is-locked {
+    opacity: 1 !important;
   }
 
   .signature-card h3 {
