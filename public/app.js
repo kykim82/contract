@@ -12,7 +12,6 @@
 const params = new URLSearchParams(location.search);
 const activeRole = params.get("role");
 const signingToken = params.get("token") || "";
-const storageKey = "contract_signatures_yeosu19_2026_06_22_v4";
 const pads = new Map();
 const signatureState = {
   client: null,
@@ -302,11 +301,10 @@ function setupModalPad() {
 }
 
 async function loadSignatures() {
-  const response = await fetch("/api/signatures").catch(() => null);
+  const response = await fetch(`/api/signatures?t=${Date.now()}`).catch(() => null);
   if (!response?.ok) {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
     Object.keys(roles).forEach((role) => {
-      if (!hasRoleLock() || role === activeRole) setSignature(role, saved[role]);
+      if (!hasRoleLock() || role === activeRole) setSignature(role, null);
     });
     return;
   }
@@ -325,14 +323,12 @@ async function checkContract() {
   }
 
   const otherRole = getOtherRole(activeRole);
-  const response = await fetch("/api/signatures").catch(() => null);
+  const response = await fetch(`/api/signatures?t=${Date.now()}`).catch(() => null);
   let signatures = {};
 
   if (response?.ok) {
     const data = await response.json();
     signatures = data.signatures || {};
-  } else {
-    signatures = JSON.parse(localStorage.getItem(storageKey) || "{}");
   }
 
   setSignature(activeRole, signatures[activeRole] || signatureState[activeRole]);
@@ -367,7 +363,6 @@ async function resetSignatures() {
     return;
   }
 
-  localStorage.removeItem(storageKey);
   Object.keys(roles).forEach((role) => setSignature(role, null));
   setActiveRole();
   alert("서명이 초기화되었습니다.");
@@ -400,16 +395,7 @@ async function saveSignature(role) {
   }).catch(() => null);
 
   if (!response?.ok) {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-    saved[role] = {
-      role,
-      signerName: roles[role].name,
-      signatureData,
-      signedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(storageKey, JSON.stringify(saved));
-    setSignature(role, saved[role]);
-    alert("서명이 이 브라우저에 임시 저장되었습니다. 서버 저장을 사용하려면 D1 연결이 필요합니다.");
+    alert("서명 저장에 실패했습니다. 인터넷 연결 또는 서버 설정을 확인한 뒤 다시 시도해주세요.");
     return;
   }
 
