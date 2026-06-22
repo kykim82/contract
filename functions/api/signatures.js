@@ -5,6 +5,8 @@ function json(data, status = 200) {
   });
 }
 
+const CONTRACT_ID = "yeosu19-2026-06-22-v2";
+
 export async function onRequestGet({ env }) {
   if (!env.DB) {
     return json({ ok: false, message: "D1 binding DB is not configured" }, 500);
@@ -14,7 +16,7 @@ export async function onRequestGet({ env }) {
     SELECT role, signer_name, signature_data, signed_at, ip, user_agent
     FROM contract_signatures
     WHERE contract_id = ?
-  `).bind("yeosu19-2026-06-19").all();
+  `).bind(CONTRACT_ID).all();
 
   const signatures = {};
   for (const row of results || []) {

@@ -9,6 +9,8 @@ function allowedRole(role) {
   return role === "client" || role === "developer";
 }
 
+const CONTRACT_ID = "yeosu19-2026-06-22-v2";
+
 export async function onRequestPost({ request, env }) {
   if (!env.DB) {
     return json({ ok: false, message: "D1 binding DB is not configured" }, 500);
@@ -44,7 +46,7 @@ export async function onRequestPost({ request, env }) {
       signed_at = excluded.signed_at,
       ip = excluded.ip,
       user_agent = excluded.user_agent
-  `).bind("yeosu19-2026-06-19", role, signerName, signatureData, signedAt, ip, userAgent).run();
+  `).bind(CONTRACT_ID, role, signerName, signatureData, signedAt, ip, userAgent).run();
 
   return json({
     ok: true,
