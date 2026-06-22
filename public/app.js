@@ -12,7 +12,7 @@
 const params = new URLSearchParams(location.search);
 const activeRole = params.get("role");
 const signingToken = params.get("token") || "";
-const storageKey = "contract_signatures_yeosu19_2026_06_22_v3";
+const storageKey = "contract_signatures_yeosu19_2026_06_22_v4";
 const pads = new Map();
 const signatureState = {
   client: null,
