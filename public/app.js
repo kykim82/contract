@@ -230,7 +230,9 @@ function setActiveRole() {
     }
 
     card.querySelectorAll("[data-open-signature], [data-clear], [data-check-contract]").forEach((button) => {
-      button.hidden = isLocked;
+      const isSignatureTrigger = button.hasAttribute("data-open-signature");
+      const hasSignature = Boolean(signatureState[role]?.signatureData);
+      button.hidden = isLocked || (isSignatureTrigger && hasSignature);
       button.disabled = isLocked;
     });
 
@@ -370,13 +372,13 @@ function hasAllSignatures(signatures) {
 async function printContract() {
   const signatures = await fetchServerSignatures();
 
-  await Promise.all(Object.keys(roles).map((role) => setSignature(role, signatures[role])));
-  setActiveRole();
-
   if (!hasAllSignatures(signatures)) {
     alert("발주자와 개발자 서명이 모두 완료되어야 인쇄/PDF 저장이 가능합니다.");
     return;
   }
+
+  await Promise.all(Object.keys(roles).map((role) => setSignature(role, signatures[role])));
+  setActiveRole();
 
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   window.print();
