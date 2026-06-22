@@ -13,6 +13,10 @@ const params = new URLSearchParams(location.search);
 const activeRole = params.get("role");
 const signingToken = params.get("token") || "";
 const pads = new Map();
+const signatureState = {
+  client: null,
+  developer: null,
+};
 const modal = {
   root: document.getElementById("signatureModal"),
   title: document.getElementById("signatureModalTitle"),
@@ -122,19 +126,51 @@ function drawSignature(role, signatureData) {
   image.src = signatureData;
 }
 
+function formatContractDate(dateValue) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}년 ${month}월 ${day}일`;
+}
+
+function updateContractDate() {
+  const dateElement = document.querySelector("[data-contract-date]");
+  if (!dateElement) return;
+
+  const signedDates = Object.values(signatureState)
+    .filter((signature) => signature?.signatureData && signature.signedAt)
+    .map((signature) => new Date(signature.signedAt))
+    .filter((date) => !Number.isNaN(date.getTime()));
+
+  if (signedDates.length < Object.keys(roles).length) {
+    dateElement.textContent = "서명 완료 후 자동 표시";
+    return;
+  }
+
+  const completedAt = new Date(Math.max(...signedDates.map((date) => date.getTime())));
+  dateElement.textContent = formatContractDate(completedAt);
+}
+
 function setSignature(role, signature) {
   const meta = document.querySelector(`[data-signed-meta="${role}"]`);
   if (!meta) return;
 
   if (!signature?.signatureData) {
+    signatureState[role] = null;
     drawSignature(role, "");
     meta.textContent = "아직 서명되지 않았습니다.";
+    updateContractDate();
     return;
   }
 
+  signatureState[role] = signature;
   drawSignature(role, signature.signatureData);
   const signedAt = signature.signedAt ? new Date(signature.signedAt).toLocaleString("ko-KR") : "";
   meta.textContent = `${signature.signerName || roles[role].name} 서명 완료${signedAt ? ` · ${signedAt}` : ""}`;
+  updateContractDate();
 }
 
 function setActiveRole() {

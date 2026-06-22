@@ -368,8 +368,21 @@ body.signature-modal-open {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 14mm 15mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   body {
     background: #fff;
+    color: #111;
+    font-size: 10.5pt;
+    line-height: 1.58;
   }
 
   .topbar,
@@ -390,7 +403,110 @@ body.signature-modal-open {
     padding: 0;
   }
 
+  .contract h2 {
+    margin: 0 0 8mm;
+    padding-bottom: 4mm;
+    border-bottom: 1.5pt solid #111;
+    font-size: 21pt;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    margin: -5mm 0 10mm;
+    font-size: 10pt;
+  }
+
+  .contract h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+    margin: 9mm 0 3mm;
+    font-size: 13pt;
+    line-height: 1.35;
+  }
+
+  .contract p,
+  .contract li {
+    font-size: 10.5pt;
+    line-height: 1.6;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .contract p {
+    margin: 0 0 4mm;
+  }
+
+  .contract ol,
+  .contract ul {
+    margin: 0 0 5mm;
+    padding-left: 5mm;
+  }
+
+  .contract li {
+    margin-bottom: 1.7mm;
+    padding-left: 1mm;
+  }
+
+  .contract-date {
+    margin: 10mm 0 5mm;
+    font-size: 12pt;
+  }
+
+  .signature-area {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12mm;
+    margin-top: 9mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   .signature-card {
     break-inside: avoid;
+    page-break-inside: avoid;
+    outline: none !important;
+    opacity: 1;
+  }
+
+  .signature-card h3 {
+    margin-top: 0;
+  }
+
+  .signature-card dl {
+    gap: 2mm;
+  }
+
+  .signature-card dl div {
+    grid-template-columns: 24mm 1fr;
+    gap: 3mm;
+  }
+
+  .signature-card dt,
+  .signature-card dd {
+    font-size: 10.5pt;
+  }
+
+  .signature-card .sign-row dd {
+    flex-direction: row;
+    align-items: center;
+    gap: 6mm;
+  }
+
+  .signature-box {
+    width: 38mm;
+    height: 15mm;
+    min-height: 15mm;
+    border-color: #aaa;
+  }
+
+  .signature-box::before {
+    content: "";
+  }
+
+  .signature-box canvas {
+    height: 15mm;
+  }
+
+  .signed-meta {
+    display: none;
   }
 }
