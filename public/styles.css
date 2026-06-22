@@ -147,8 +147,8 @@ button:disabled {
 
 .signature-area {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 30px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 38px;
   margin-top: 42px;
 }
 
@@ -215,13 +215,7 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-width: 260px;
-}
-
-.signature-stamp {
-  color: #111;
-  font-size: 14px;
-  white-space: nowrap;
+  min-width: 150px;
 }
 
 .signature-box {
@@ -233,6 +227,7 @@ button:disabled {
   border: 1px dashed #b8a896;
   border-radius: 6px;
   background: #fff;
+  cursor: pointer;
   touch-action: none;
 }
 
@@ -277,6 +272,71 @@ button:disabled {
   font-size: 13px;
 }
 
+body.signature-modal-open {
+  overflow: hidden;
+}
+
+.signature-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(31, 28, 24, 0.58);
+}
+
+.signature-modal__panel {
+  width: min(760px, 100%);
+  padding: 22px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+}
+
+.signature-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.signature-modal__header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.signature-modal__close {
+  min-height: 36px;
+}
+
+.signature-modal__box {
+  overflow: hidden;
+  border: 1px dashed #a99480;
+  border-radius: 12px;
+  background: #fff;
+  touch-action: none;
+}
+
+.signature-modal__box canvas {
+  display: block;
+  width: 100%;
+  height: min(42vh, 300px);
+}
+
+.signature-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.signature-modal__actions .primary {
+  background: var(--accent);
+  color: #fff;
+}
+
 @media (max-width: 760px) {
   .topbar {
     position: static;
@@ -297,6 +357,14 @@ button:disabled {
     flex-direction: column;
     gap: 8px;
   }
+
+  .signature-modal {
+    padding: 14px;
+  }
+
+  .signature-modal__panel {
+    padding: 16px;
+  }
 }
 
 @media print {
@@ -306,7 +374,8 @@ button:disabled {
 
   .topbar,
   .notice,
-  .signature-actions {
+  .signature-actions,
+  .signature-modal {
     display: none !important;
   }
 
