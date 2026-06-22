@@ -193,6 +193,7 @@ button:disabled {
   display: grid;
   grid-template-columns: 90px 1fr;
   gap: 10px;
+  align-items: center;
 }
 
 .signature-card dt {
@@ -218,6 +219,24 @@ button:disabled {
   min-width: 150px;
 }
 
+.signature-trigger {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.signature-trigger:hover {
+  background: transparent;
+  color: var(--accent);
+}
+
 .signature-box {
   position: relative;
   overflow: hidden;
@@ -232,7 +251,7 @@ button:disabled {
 }
 
 .signature-box::before {
-  content: "여기에 직접 서명하세요";
+  content: "";
   position: absolute;
   left: 8px;
   top: 6px;
@@ -424,6 +443,11 @@ body.signature-modal-open {
     line-height: 1.35;
   }
 
+  .print-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
   .contract p,
   .contract li {
     font-size: 10.5pt;
@@ -489,6 +513,10 @@ body.signature-modal-open {
     flex-direction: row;
     align-items: center;
     gap: 6mm;
+  }
+
+  .signature-trigger {
+    display: none !important;
   }
 
   .signature-box {

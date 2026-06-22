@@ -12,6 +12,7 @@ const roles = {
 const params = new URLSearchParams(location.search);
 const activeRole = params.get("role");
 const signingToken = params.get("token") || "";
+const storageKey = "contract_signatures_yeosu19_2026_06_22_v2";
 const pads = new Map();
 const signatureState = {
   client: null,
@@ -81,6 +82,13 @@ function clearCanvas(role) {
   pad.dirty = false;
 }
 
+function setSignaturePreview(role, hasSignature) {
+  const trigger = document.querySelector(`[data-open-signature="${role}"]`);
+  const preview = document.querySelector(`[data-signature-preview="${role}"]`);
+  if (trigger) trigger.hidden = hasSignature;
+  if (preview) preview.hidden = !hasSignature;
+}
+
 function clearPad(role) {
   if (!canEditRole(role)) {
     alert(`${roles[role].label} 서명 링크에서만 수정할 수 있습니다.`);
@@ -88,6 +96,7 @@ function clearPad(role) {
   }
 
   clearCanvas(role);
+  setSignaturePreview(role, false);
   const meta = document.querySelector(`[data-signed-meta="${role}"]`);
   if (meta) meta.textContent = "서명을 다시 입력해주세요.";
 }
@@ -122,6 +131,7 @@ function drawSignature(role, signatureData) {
   image.onload = () => {
     drawImageToCanvas(pad.context, pad.canvas, image);
     pad.dirty = false;
+    setSignaturePreview(role, true);
   };
   image.src = signatureData;
 }
@@ -161,6 +171,7 @@ function setSignature(role, signature) {
   if (!signature?.signatureData) {
     signatureState[role] = null;
     drawSignature(role, "");
+    setSignaturePreview(role, false);
     meta.textContent = "아직 서명되지 않았습니다.";
     updateContractDate();
     return;
@@ -190,6 +201,10 @@ function setActiveRole() {
       canvas.setAttribute("aria-disabled", isLocked ? "true" : "false");
       canvas.tabIndex = isLocked ? -1 : 0;
     }
+
+    card.querySelectorAll("[data-open-signature]").forEach((button) => {
+      button.disabled = isLocked;
+    });
   });
 }
 
@@ -232,6 +247,7 @@ function confirmModalSignature() {
   clearCanvasContext(pad.context, pad.canvas);
   pad.context.drawImage(modal.canvas, 0, 0, pad.canvas.width, pad.canvas.height);
   pad.dirty = true;
+  setSignaturePreview(modal.role, true);
 
   const meta = document.querySelector(`[data-signed-meta="${modal.role}"]`);
   if (meta) meta.textContent = "서명 입력 완료. 저장 버튼을 눌러주세요.";
@@ -274,7 +290,7 @@ function setupModalPad() {
 async function loadSignatures() {
   const response = await fetch("/api/signatures").catch(() => null);
   if (!response?.ok) {
-    const saved = JSON.parse(localStorage.getItem("contract_signatures") || "{}");
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
     Object.keys(roles).forEach((role) => setSignature(role, saved[role]));
     return;
   }
@@ -310,14 +326,14 @@ async function saveSignature(role) {
   }).catch(() => null);
 
   if (!response?.ok) {
-    const saved = JSON.parse(localStorage.getItem("contract_signatures") || "{}");
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
     saved[role] = {
       role,
       signerName: roles[role].name,
       signatureData,
       signedAt: new Date().toISOString(),
     };
-    localStorage.setItem("contract_signatures", JSON.stringify(saved));
+    localStorage.setItem(storageKey, JSON.stringify(saved));
     setSignature(role, saved[role]);
     alert("서명이 이 브라우저에 임시 저장되었습니다. 서버 저장을 사용하려면 D1 연결이 필요합니다.");
     return;
@@ -335,6 +351,9 @@ document.querySelectorAll("[data-clear]").forEach((button) => {
 document.querySelectorAll("[data-save]").forEach((button) => {
   button.addEventListener("click", () => saveSignature(button.dataset.save));
 });
+document.querySelectorAll("[data-open-signature]").forEach((button) => {
+  button.addEventListener("click", () => openSignatureModal(button.dataset.openSignature));
+});
 document.querySelector("[data-modal-close]").addEventListener("click", closeSignatureModal);
 document.querySelector("[data-modal-clear]").addEventListener("click", clearModalPad);
 document.querySelector("[data-modal-confirm]").addEventListener("click", confirmModalSignature);
@@ -344,7 +363,6 @@ modal.root.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modal.root.hidden) closeSignatureModal();
 });
-document.getElementById("refreshButton").addEventListener("click", loadSignatures);
 document.getElementById("printButton").addEventListener("click", () => window.print());
 
 setupModalPad();
