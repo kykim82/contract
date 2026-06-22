@@ -13,6 +13,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -34,6 +38,11 @@ button {
 
 button:hover {
   background: #f1e5d8;
+}
+
+button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
 }
 
 .topbar {
@@ -138,23 +147,36 @@ button:hover {
 
 .signature-area {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
+  grid-template-columns: 1fr;
+  gap: 30px;
   margin-top: 42px;
 }
 
 .signature-card {
   display: grid;
-  gap: 16px;
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fffaf3;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .signature-card.is-active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(122, 82, 51, 0.14);
+  outline: 2px solid rgba(122, 82, 51, 0.22);
+  outline-offset: 12px;
+}
+
+.signature-card.is-locked {
+  opacity: 0.58;
+}
+
+.signature-card.is-locked .signature-box {
+  background: #f4f0e9;
+}
+
+.signature-card.is-locked canvas {
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .signature-card h3 {
@@ -163,7 +185,7 @@ button:hover {
 
 .signature-card dl {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
 }
 
@@ -182,12 +204,34 @@ button:hover {
   margin: 0;
 }
 
+.signature-card .sign-row dd {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.signature-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 260px;
+}
+
+.signature-stamp {
+  color: #111;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
 .signature-box {
   position: relative;
   overflow: hidden;
-  min-height: 150px;
+  width: 150px;
+  height: 58px;
+  min-height: 58px;
   border: 1px dashed #b8a896;
-  border-radius: 10px;
+  border-radius: 6px;
   background: #fff;
   touch-action: none;
 }
@@ -195,10 +239,10 @@ button:hover {
 .signature-box::before {
   content: "여기에 직접 서명하세요";
   position: absolute;
-  left: 18px;
-  top: 12px;
+  left: 8px;
+  top: 6px;
   color: #c1b6aa;
-  font-size: 14px;
+  font-size: 11px;
   pointer-events: none;
 }
 
@@ -206,7 +250,7 @@ button:hover {
 .signature-box img {
   display: block;
   width: 100%;
-  height: 180px;
+  height: 58px;
 }
 
 .signature-box img {
@@ -216,14 +260,21 @@ button:hover {
 .signed-meta {
   margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .signature-actions {
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-wrap: wrap;
+}
+
+.signature-actions button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
 }
 
 @media (max-width: 760px) {
@@ -239,6 +290,12 @@ button:hover {
 
   .signature-area {
     grid-template-columns: 1fr;
+  }
+
+  .signature-card .sign-row dd {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
 }
 
