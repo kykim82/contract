@@ -342,6 +342,34 @@ async function checkContract() {
   alert(`${roles[otherRole].label} 서명이 확인되었습니다.`);
 }
 
+async function fetchServerSignatures() {
+  const response = await fetch(`/api/signatures?t=${Date.now()}`).catch(() => null);
+  if (!response?.ok) return {};
+
+  const data = await response.json().catch(() => ({}));
+  return data.signatures || {};
+}
+
+function hasAllSignatures(signatures) {
+  return Object.keys(roles).every((role) => signatures[role]?.signatureData);
+}
+
+async function printContract() {
+  const signatures = await fetchServerSignatures();
+
+  Object.keys(roles).forEach((role) => {
+    setSignature(role, signatures[role]);
+  });
+  setActiveRole();
+
+  if (!hasAllSignatures(signatures)) {
+    alert("발주자와 개발자 서명이 모두 완료되어야 인쇄/PDF 저장이 가능합니다.");
+    return;
+  }
+
+  window.print();
+}
+
 async function resetSignatures() {
   if (activeRole !== "developer") {
     alert("서명 초기화는 개발자 링크에서만 가능합니다.");
@@ -426,7 +454,7 @@ modal.root.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modal.root.hidden) closeSignatureModal();
 });
-document.getElementById("printButton").addEventListener("click", () => window.print());
+document.getElementById("printButton").addEventListener("click", printContract);
 const resetButton = document.getElementById("resetButton");
 if (resetButton) {
   resetButton.hidden = activeRole !== "developer";
