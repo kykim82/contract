@@ -208,7 +208,7 @@ function setActiveRole() {
       canvas.tabIndex = isLocked ? -1 : 0;
     }
 
-    card.querySelectorAll("[data-open-signature], [data-clear], [data-save]").forEach((button) => {
+    card.querySelectorAll("[data-open-signature], [data-clear], [data-save], [data-check-contract]").forEach((button) => {
       button.hidden = isLocked;
       button.disabled = isLocked;
     });
@@ -341,6 +341,33 @@ async function checkContract() {
   alert(`${roles[otherRole].label} 서명이 확인되었습니다.`);
 }
 
+async function resetSignatures() {
+  if (activeRole !== "developer") {
+    alert("서명 초기화는 개발자 링크에서만 가능합니다.");
+    return;
+  }
+
+  if (!confirm("발주자와 개발자 서명을 모두 초기화할까요? 이 작업은 되돌릴 수 없습니다.")) {
+    return;
+  }
+
+  const response = await fetch("/api/reset", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ role: activeRole, token: signingToken }),
+  }).catch(() => null);
+
+  if (!response?.ok) {
+    alert("서명 초기화에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    return;
+  }
+
+  localStorage.removeItem(storageKey);
+  Object.keys(roles).forEach((role) => setSignature(role, null));
+  setActiveRole();
+  alert("서명이 초기화되었습니다.");
+}
+
 async function saveSignature(role) {
   if (!canEditRole(role)) {
     alert(`${roles[role].label} 서명 링크에서만 저장할 수 있습니다.`);
@@ -393,6 +420,9 @@ document.querySelectorAll("[data-clear]").forEach((button) => {
 document.querySelectorAll("[data-save]").forEach((button) => {
   button.addEventListener("click", () => saveSignature(button.dataset.save));
 });
+document.querySelectorAll("[data-check-contract]").forEach((button) => {
+  button.addEventListener("click", checkContract);
+});
 document.querySelectorAll("[data-open-signature]").forEach((button) => {
   button.addEventListener("click", () => openSignatureModal(button.dataset.openSignature));
 });
@@ -406,7 +436,11 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !modal.root.hidden) closeSignatureModal();
 });
 document.getElementById("printButton").addEventListener("click", () => window.print());
-document.getElementById("checkButton").addEventListener("click", checkContract);
+const resetButton = document.getElementById("resetButton");
+if (resetButton) {
+  resetButton.hidden = activeRole !== "developer";
+  resetButton.addEventListener("click", resetSignatures);
+}
 
 setupModalPad();
 setActiveRole();

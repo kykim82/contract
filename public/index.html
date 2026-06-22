@@ -14,7 +14,7 @@
       <p>여수19 레오플예술공장 홈페이지 재구축 및 예약 시스템 구축</p>
     </div>
     <div class="topbar__actions">
-      <button type="button" id="checkButton">계약서 확인</button>
+      <button type="button" id="resetButton" hidden>서명 초기화</button>
       <button type="button" id="printButton">인쇄 / PDF 저장</button>
     </div>
   </header>
@@ -152,6 +152,7 @@
           <div class="signature-actions">
             <button type="button" data-clear="client">지우기</button>
             <button type="button" data-save="client">발주자 서명 저장</button>
+            <button type="button" data-check-contract>계약서 확인</button>
           </div>
         </div>
 
@@ -179,6 +180,7 @@
           <div class="signature-actions">
             <button type="button" data-clear="developer">지우기</button>
             <button type="button" data-save="developer">개발자 서명 저장</button>
+            <button type="button" data-check-contract>계약서 확인</button>
           </div>
         </div>
       </section>
