@@ -171,7 +171,7 @@ button:disabled {
 }
 
 .signature-card.is-locked .signature-box {
-  background: #f4f0e9;
+  background: transparent;
 }
 
 .signature-card.is-locked canvas {
@@ -243,9 +243,9 @@ button:disabled {
   width: 150px;
   height: 58px;
   min-height: 58px;
-  border: 1px dashed #b8a896;
-  border-radius: 6px;
-  background: #fff;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
   touch-action: none;
 }
@@ -523,7 +523,6 @@ body.signature-modal-open {
     width: 38mm;
     height: 15mm;
     min-height: 15mm;
-    border-color: #aaa;
   }
 
   .signature-box::before {
